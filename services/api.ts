@@ -29,11 +29,41 @@ export const api = {
     });
 
     if (!response.ok) {
-      const errorData: ApiErrorResponse = await response.json().catch(() => ({
-        message: 'Erro interno no servidor de autenticação.',
+      // 1. Lemos o corpo como texto primeiro para garantir que não quebre se vier vazio
+      const errorText = await response.text().catch(() => "");
+      let rawErrorData: any = {};
+      
+      try {
+        if (errorText) rawErrorData = JSON.parse(errorText);
+      } catch (e) {
+        // Falha ao buildar o JSON do erro
+      }
+
+      // 2. Extraímos a mensagem original vinda do servidor ou do Supabase
+      const serverMessage = rawErrorData.message || rawErrorData.error || "";
+      
+      // 3. Definimos uma mensagem padrão amigável e segura para o cliente final
+      let clientMessage = "Erro interno no servidor de autenticação.";
+
+      // 4. Mapeamento e higienização de segurança das mensagens
+      if (serverMessage.includes("rate limit exceeded")) {
+        clientMessage = "Muitas solicitações seguidas. Por favor, aguarde alguns minutos antes de tentar novamente.";
+      } else if (serverMessage.includes("already registered") || serverMessage.includes("unique constraint")) {
+        clientMessage = "Os dados informados já constam cadastrados em nosso sistema.";
+      } else if (serverMessage) {
+        // Se for um erro comum de validação do seu próprio backend que seja seguro expor
+        clientMessage = serverMessage;
+      }
+
+      const errorData: ApiErrorResponse = {
+        message: clientMessage,
         statusCode: response.status,
-      }));
-      console.error("[DEBUG FRONT] Erro na requisição API:", errorData);
+      };
+
+      // Mantemos o log detalhado privado apenas no console do desenvolvedor
+      console.error("[DEBUG FRONT] Erro original do servidor:", serverMessage || errorText);
+      console.error("[DEBUG FRONT] Erro higienizado enviado ao componente:", errorData);
+      
       throw errorData;
     }
 

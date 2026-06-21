@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Mail, Lock, User, Phone, FileText } from "lucide-react"
+import { ArrowLeft, Mail, Lock, Phone, FileText, CheckCircle2, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +15,10 @@ export default function LoginPage() {
   const { login, register } = useAuth()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+
+  // Estados de feedback visual para o Cadastro
+  const [registerSuccess, setRegisterSuccess] = useState(false)
+  const [registerError, setRegisterError] = useState("")
 
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
@@ -28,9 +32,6 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    console.log("[DEBUG FRONT] 1. Botão de login clicado!");
-    console.log("[DEBUG FRONT] Dados capturados no estado:", { email, senha })
 
     try {
       await login({ email, senha })
@@ -49,39 +50,55 @@ export default function LoginPage() {
     }
   }
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    const handleRegister = async (e: React.FormEvent) => {
+      e.preventDefault()
+      setIsLoading(true)
+      setRegisterSuccess(false)
+      setRegisterError("")
 
-    try {
-      await register({
-        nome,
-        email: regEmail,
-        cpf,
-        telefone,
-        senha: regSenha,
-      })
-      
-      toast({
-        title: "Cadastro realizado!",
-        description: "Sua conta foi criada. Aguarde a ativação do administrador.",
-      })
-      
-      setNome("")
-      setRegEmail("")
-      setCpf("")
-      setTelefone("")
-      setRegSenha("")
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro no cadastro",
-        description: error.message || "Falha ao tentar cadastrar.",
-      })
-    } finally {
-      setIsLoading(false)
+      // Remove máscaras (pontos, traços, espaços) para enviar dados limpos
+      const cleanCpf = cpf.replace(/\D/g, "")
+      const cleanTelefone = telefone.replace(/\D/g, "")
+
+      try {
+        await register({
+          nome,
+          email: regEmail,
+          cpf: cleanCpf,
+          telefone: cleanTelefone,
+          senha: regSenha,
+        })
+        
+        // Se chegou aqui, deu certo!
+        setRegisterSuccess(true)
+
+        toast({
+          title: "Cadastro realizado!",
+          description: "Sua conta foi criada e aguarda aprovação.",
+        })
+        
+        // Limpa os campos do formulário APENAS em caso de sucesso
+        setNome("")
+        setRegEmail("")
+        setCpf("")
+        setTelefone("")
+        setRegSenha("")
+
+      } catch (error: any) {
+        // Pega a mensagem que já foi higienizada lá no api.ts (ex: "Muitas solicitações seguidas...")
+        const errorMsg = error.message || "Falha ao tentar cadastrar."
+        
+        setRegisterError(errorMsg)
+        
+        toast({
+          variant: "destructive",
+          title: "Erro no cadastro",
+          description: errorMsg,
+        })
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -225,6 +242,28 @@ export default function LoginPage() {
                     />
                   </div>
                 </div>
+
+                {/* Bloco de Mensagem de Sucesso na Tela */}
+                {registerSuccess && (
+                  <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex gap-3 text-emerald-600 dark:text-emerald-400 text-sm">
+                    <CheckCircle2 className="h-5 w-5 shrink-0" />
+                    <div>
+                      <p className="font-semibold">Cadastro solicitado com sucesso!</p>
+                      <p className="mt-0.5 opacity-90">Sua conta foi enviada para análise. Você poderá fazer login assim que o administrador liberar o seu acesso.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bloco de Mensagem de Erro na Tela */}
+                {registerError && (
+                  <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex gap-3 text-destructive text-sm">
+                    <AlertTriangle className="h-5 w-5 shrink-0" />
+                    <div>
+                      <p className="font-semibold">Não foi possível cadastrar</p>
+                      <p className="mt-0.5 opacity-90">{registerError}</p>
+                    </div>
+                  </div>
+                )}
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Cadastrando..." : "Cadastrar"}
