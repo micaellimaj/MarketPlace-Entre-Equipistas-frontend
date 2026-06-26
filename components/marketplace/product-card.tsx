@@ -36,6 +36,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const productImages = product.images?.length > 0 
     ? product.images 
@@ -50,6 +51,9 @@ export function ProductCard({ product }: ProductCardProps) {
     e.stopPropagation()
     setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length)
   }
+
+  // Verifica se a descrição é longa o suficiente para precisar do botão
+  const isLongDescription = product.description.length > 60
 
   return (
     <div className="group bg-card rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 relative flex flex-col justify-between border border-border/50">
@@ -117,9 +121,20 @@ export function ProductCard({ product }: ProductCardProps) {
           </h3>
 
           {/* Description */}
-          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-            {product.description}
-          </p>
+          <div>
+            <p className={`text-xs text-muted-foreground leading-relaxed ${!isExpanded ? "line-clamp-2" : ""}`}>
+              {product.description}
+            </p>
+            {isLongDescription && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-[11px] font-semibold text-[#0070e3] hover:underline mt-0.5 block"
+              >
+                {isExpanded ? "Ver menos" : "Ver mais"}
+              </button>
+            )}
+          </div>
 
           {/* Seller */}
           <p className="text-xs text-muted-foreground pt-0.5">

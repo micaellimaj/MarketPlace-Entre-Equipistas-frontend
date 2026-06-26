@@ -16,6 +16,9 @@ export default function LoginPage() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
+  // Estados de feedback visual para o Login
+  const [loginError, setLoginError] = useState("")
+
   // Estados de feedback visual para o Cadastro
   const [registerSuccess, setRegisterSuccess] = useState(false)
   const [registerError, setRegisterError] = useState("")
@@ -32,6 +35,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setLoginError("") // Limpa erros anteriores ao tentar novamente
 
     try {
       await login({ email, senha })
@@ -40,65 +44,70 @@ export default function LoginPage() {
         description: "Login realizado com sucesso.",
       })
     } catch (error: any) {
+      // Mensagem personalizada solicitada
+      const errorMsg = "E-mail ou senha incorretos, ou você não tem permissão para acessar a plataforma."
+      
+      setLoginError(errorMsg)
+
       toast({
         variant: "destructive",
         title: "Erro no login",
-        description: error.message || "Falha ao tentar autenticar.",
+        description: errorMsg,
       })
     } finally {
       setIsLoading(false)
     }
   }
 
-    const handleRegister = async (e: React.FormEvent) => {
-      e.preventDefault()
-      setIsLoading(true)
-      setRegisterSuccess(false)
-      setRegisterError("")
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setRegisterSuccess(false)
+    setRegisterError("")
 
-      // Remove máscaras (pontos, traços, espaços) para enviar dados limpos
-      const cleanCpf = cpf.replace(/\D/g, "")
-      const cleanTelefone = telefone.replace(/\D/g, "")
+    // Remove máscaras (pontos, traços, espaços) para enviar dados limpos
+    const cleanCpf = cpf.replace(/\D/g, "")
+    const cleanTelefone = telefone.replace(/\D/g, "")
 
-      try {
-        await register({
-          nome,
-          email: regEmail,
-          cpf: cleanCpf,
-          telefone: cleanTelefone,
-          senha: regSenha,
-        })
-        
-        // Se chegou aqui, deu certo!
-        setRegisterSuccess(true)
+    try {
+      await register({
+        nome,
+        email: regEmail,
+        cpf: cleanCpf,
+        telefone: cleanTelefone,
+        senha: regSenha,
+      })
+      
+      // Se chegou aqui, deu certo!
+      setRegisterSuccess(true)
 
-        toast({
-          title: "Cadastro realizado!",
-          description: "Sua conta foi criada e aguarda aprovação.",
-        })
-        
-        // Limpa os campos do formulário APENAS em caso de sucesso
-        setNome("")
-        setRegEmail("")
-        setCpf("")
-        setTelefone("")
-        setRegSenha("")
+      toast({
+        title: "Cadastro realizado!",
+        description: "Sua conta foi criada e aguarda aprovação.",
+      })
+      
+      // Limpa os campos do formulário APENAS em caso de sucesso
+      setNome("")
+      setRegEmail("")
+      setCpf("")
+      setTelefone("")
+      setRegSenha("")
 
-      } catch (error: any) {
-        // Pega a mensagem que já foi higienizada lá no api.ts (ex: "Muitas solicitações seguidas...")
-        const errorMsg = error.message || "Falha ao tentar cadastrar."
-        
-        setRegisterError(errorMsg)
-        
-        toast({
-          variant: "destructive",
-          title: "Erro no cadastro",
-          description: errorMsg,
-        })
-      } finally {
-        setIsLoading(false)
-      }
+    } catch (error: any) {
+      // Pega a mensagem que já foi higienizada lá no api.ts (ex: "Muitas solicitações seguidas...")
+      const errorMsg = error.message || "Falha ao tentar cadastrar."
+      
+      setRegisterError(errorMsg)
+      
+      toast({
+        variant: "destructive",
+        title: "Erro no cadastro",
+        description: errorMsg,
+      })
+    } finally {
+      setIsLoading(false)
     }
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -145,7 +154,7 @@ export default function LoginPage() {
                     required
                   />
                 </div>
-                      
+                    
                 <div className="space-y-2">
                   <Label htmlFor="password">Senha</Label>
                   <Input
@@ -157,7 +166,18 @@ export default function LoginPage() {
                     required
                   />
                 </div>
-                          
+
+                {/* Bloco de Mensagem de Erro na Tela de Login */}
+                {loginError && (
+                  <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex gap-3 text-destructive text-sm">
+                    <AlertTriangle className="h-5 w-5 shrink-0" />
+                    <div>
+                      <p className="font-semibold">Falha na autenticação</p>
+                      <p className="mt-0.5 opacity-90">{loginError}</p>
+                    </div>
+                  </div>
+                )}
+                        
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Entrando..." : "Entrar"}
                 </Button>
