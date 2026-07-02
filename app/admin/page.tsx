@@ -563,7 +563,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-       {/* Modal de Confirmação de Deleção Customizado */}
+        {/* Modal de Confirmação de Deleção Customizado */}
         {deleteConfirmation && (
           <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-card border border-destructive/40 rounded-xl shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-150 text-center">
@@ -571,13 +571,10 @@ export default function AdminDashboardPage() {
                 <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
               
-              {/* Texto principal: 100% visível no tema claro (preto) e escuro (branco) */}
               <h3 className="text-base font-bold text-foreground">
                 Excluir Permanentemente?
               </h3>
               
-              {/* Mudamos de text-muted-foreground para text-foreground/70 */}
-              {/* Isso garante contraste alto em qualquer tema, apenas suavizando a cor base */}
               <p className="text-xs text-foreground/75 mt-2 leading-relaxed">
                 Tem certeza que deseja deletar o usuário <strong className="text-foreground font-black underline decoration-destructive/40">"{deleteConfirmation.nome}"</strong>? 
                 Esta ação é irreversível e removerá todos os produtos e endereços vinculados em cascata.
@@ -591,10 +588,11 @@ export default function AdminDashboardPage() {
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="button"
                   onClick={handleConfirmDelete}
-                  className="flex-1 px-4 py-2 text-xs font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-colors shadow-sm"
+                  className="flex-1 px-4 py-2 text-xs font-bold bg-destructive/20 border border-destructive text-foreground hover:bg-destructive hover:text-white rounded-lg transition-colors shadow-sm"
                 >
                   Sim, Deletar Conta
                 </button>
@@ -602,6 +600,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         )}
+        
 
         {/* Toast Flutuante de Notificação Automatizada */}
         {toast && (
