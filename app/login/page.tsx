@@ -35,7 +35,9 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setLoginError("") // Limpa erros anteriores ao tentar novamente
+    setLoginError("") 
+    setRegisterError("")
+    setRegisterSuccess(false)
 
     try {
       await login({ email, senha })
@@ -44,9 +46,7 @@ export default function LoginPage() {
         description: "Login realizado com sucesso.",
       })
     } catch (error: any) {
-      // Mensagem personalizada solicitada
       const errorMsg = "E-mail ou senha incorretos, ou você não tem permissão para acessar a plataforma."
-      
       setLoginError(errorMsg)
 
       toast({
@@ -64,8 +64,9 @@ export default function LoginPage() {
     setIsLoading(true)
     setRegisterSuccess(false)
     setRegisterError("")
+    // 🔥 Limpa resquícios da aba de login ao tentar se cadastrar
+    setLoginError("")
 
-    // Remove máscaras (pontos, traços, espaços) para enviar dados limpos
     const cleanCpf = cpf.replace(/\D/g, "")
     const cleanTelefone = telefone.replace(/\D/g, "")
 
@@ -78,7 +79,6 @@ export default function LoginPage() {
         senha: regSenha,
       })
       
-      // Se chegou aqui, deu certo!
       setRegisterSuccess(true)
 
       toast({
@@ -86,7 +86,6 @@ export default function LoginPage() {
         description: "Sua conta foi criada e aguarda aprovação.",
       })
       
-      // Limpa os campos do formulário APENAS em caso de sucesso
       setNome("")
       setRegEmail("")
       setCpf("")
@@ -94,9 +93,7 @@ export default function LoginPage() {
       setRegSenha("")
 
     } catch (error: any) {
-      // Pega a mensagem que já foi higienizada lá no api.ts (ex: "Muitas solicitações seguidas...")
       const errorMsg = error.message || "Falha ao tentar cadastrar."
-      
       setRegisterError(errorMsg)
       
       toast({
@@ -225,7 +222,7 @@ export default function LoginPage() {
                       placeholder="000.000.000-00"
                       className="pl-10"
                       value={cpf}
-                      onChange={(e) => setCpf(e.target.value)}
+                      onChange={(e) => setCpf(e.target.value.replace(/[^0-9.-]/g, ""))}
                       required
                     />
                   </div>
@@ -241,7 +238,7 @@ export default function LoginPage() {
                       placeholder="(00) 00000-0000"
                       className="pl-10"
                       value={telefone}
-                      onChange={(e) => setTelefone(e.target.value)}
+                      onChange={(e) => setTelefone(e.target.value.replace(/[^0-9() -]/g, ""))}
                       required
                     />
                   </div>

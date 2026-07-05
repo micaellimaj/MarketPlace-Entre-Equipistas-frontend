@@ -59,18 +59,13 @@ export default function MarketplacePage() {
 
   useEffect(() => {
     async function loadMarketplaceData() {
-      if (!mounted || !isAuthenticated) return
+      if (!mounted || !isAuthenticated || !user) return
 
       try {
         setLoading(true)
         setError(null)
 
-        let loggedUserId = ""
-        const storedAuth = localStorage.getItem("@marketplace:user")
-        if (storedAuth) {
-          const parsedAuth = JSON.parse(storedAuth)
-          loggedUserId = parsedAuth.id || parsedAuth.user?.id || ""
-        }
+        const loggedUserId = user.id || ""
 
         const [productsData, addressesData] = await Promise.all([
           productsService.getAll(),
@@ -126,10 +121,13 @@ export default function MarketplacePage() {
       }
     }
 
-    if (mounted && !authLoading) {
+    if (mounted && !authLoading && isAuthenticated) {
       loadMarketplaceData()
     }
-  }, [mounted, isAuthenticated, authLoading])
+    
+  }, [mounted, isAuthenticated, authLoading, user])
+
+
 
   // Volta para a página 1 se o usuário mudar de categoria, preço ou fizer uma nova busca
   useEffect(() => {

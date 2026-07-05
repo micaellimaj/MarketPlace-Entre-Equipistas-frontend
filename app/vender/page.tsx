@@ -192,9 +192,9 @@ export default function SellerDashboard() {
 
   useEffect(() => {
     if (user && user.role !== 'ADMIN') {
-      loadInitialData()
+      loadInitialData();
     }
-  }, [user])
+  }, []);
 
   async function loadProducts() {
     try {

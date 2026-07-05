@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
     if (user && user.role === 'ADMIN') {
       loadUsers();
     }
-  }, [user]);
+  }, []);
 
   const handleChangeStatus = async (id: string, currentStatus: UserStatus) => {
     const nextStatus: UserStatus = currentStatus === 'ATIVO' ? 'INATIVO' : 'ATIVO';

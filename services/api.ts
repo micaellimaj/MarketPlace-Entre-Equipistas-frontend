@@ -25,6 +25,7 @@ export const api = {
     
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
+      cache: 'no-store',
       headers,
     });
 
