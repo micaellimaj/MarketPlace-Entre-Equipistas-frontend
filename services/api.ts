@@ -30,7 +30,25 @@ export const api = {
     });
 
     if (!response.ok) {
-      // 1. Lemos o corpo como texto primeiro para garantir que não quebre se vier vazio
+      
+      if (response.status === 401) {
+        if (typeof window !== 'undefined') {
+          console.warn("[API] Token expirado ou inválido. Limpando sessão e redirecionando...");
+          
+          // Limpa os dados obsoletos do localStorage para não entrar em loop
+          localStorage.removeItem('@marketplace:token');
+          localStorage.removeItem('@marketplace:user');
+          
+          // Redireciona à força para a tela de login
+          window.location.href = '/login';
+        }
+        
+        throw {
+          message: "Sua sessão expirou. Por favor, faça login novamente.",
+          statusCode: 401
+        };
+      }
+      
       const errorText = await response.text().catch(() => "");
       let rawErrorData: any = {};
       

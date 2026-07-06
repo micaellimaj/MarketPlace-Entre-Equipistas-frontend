@@ -144,8 +144,31 @@ export default function MarketplacePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-destructive font-medium">{error}</p>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="bg-card border border-destructive/20 rounded-2xl p-6 max-w-md w-full shadow-sm text-center space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive font-bold text-xl">
+            !
+          </div>
+          <div className="space-y-1">
+            <h2 className="font-semibold text-foreground">Não foi possível carregar os dados</h2>
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button 
+              variant="outline" 
+              className="w-full rounded-xl"
+              onClick={() => window.location.reload()}
+            >
+              Tentar novamente
+            </Button>
+            <Button 
+              className="w-full rounded-xl"
+              onClick={() => router.push("/login")}
+            >
+              Fazer login novamente
+            </Button>
+          </div>
+        </div>
       </div>
     )
   }
