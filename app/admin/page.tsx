@@ -55,6 +55,7 @@ export default function AdminDashboardPage() {
 
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [isActionSubmitting, setIsActionSubmitting] = useState<string | null>(null);
   
   // Estado do Toast de Notificação
@@ -79,16 +80,24 @@ export default function AdminDashboardPage() {
   };
 
   async function loadUsers() {
-    try {
-      const data = await adminService.listAllUsers();
-      setUsers(data);
-    } catch (error) {
-      console.error('[ADMIN] Erro ao carregar usuários:', error);
+  try {
+    setApiError(null);
+    const data = await adminService.listAllUsers();
+    setUsers(data);
+  } catch (error: any) {
+    console.error('[ADMIN] Erro ao carregar usuários:', error);
+    
+    // Verifica se o erro foi por token expirado/não autorizado (401)
+    if (error?.statusCode === 401 || error?.status === 401) {
+      setApiError('Sua sessão expirou por inatividade. É necessário autenticar-se novamente.');
+    } else {
+      setApiError('Não foi possível carregar a lista de usuários do painel administrativo.');
       showNotification('Erro ao carregar a lista de usuários.', 'error');
-    } finally {
-      setLoading(false);
     }
+  } finally {
+    setLoading(false);
   }
+}
 
   useEffect(() => {
     if (!authLoading) {
@@ -203,6 +212,36 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-2">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-muted-foreground text-sm">Carregando painel...</p>
+      </div>
+    );
+  }
+
+  if (apiError) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="bg-card border border-destructive/20 rounded-2xl p-6 max-w-md w-full shadow-sm text-center space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+            <AlertTriangle className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="font-semibold text-foreground">Falha na Autenticação</h2>
+            <p className="text-sm text-muted-foreground">{apiError}</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <button 
+              className="w-full h-10 px-4 inline-flex items-center justify-center rounded-xl border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium transition-colors"
+              onClick={() => window.location.reload()}
+            >
+              Tentar novamente
+            </button>
+            <button 
+              className="w-full h-10 px-4 inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium transition-colors"
+              onClick={() => router.push('/login')}
+            >
+              Ir para o Login
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

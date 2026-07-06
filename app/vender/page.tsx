@@ -18,6 +18,7 @@ import {
   MapPin,
   CheckCircle2,
   XCircle,
+  AlertTriangle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -128,6 +129,7 @@ export default function SellerDashboard() {
   const [products, setProducts] = useState<Product[]>([])
   const [addresses, setAddresses] = useState<Address[]>([])
   const [loading, setLoading] = useState(true)
+  const [apiError, setApiError] = useState<string | null>(null)
 
   // Estado global de Notificações (Toast)
   const [toast, setToast] = useState<ToastState | null>(null)
@@ -165,6 +167,7 @@ export default function SellerDashboard() {
 
   async function loadInitialData() {
     try {
+      setApiError(null)
       setLoading(true)
       const [productsData, addressesData] = await Promise.all([
         productsService.getMyProducts(),
@@ -172,9 +175,15 @@ export default function SellerDashboard() {
       ])
       setProducts(productsData)
       setAddresses(addressesData)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao carregar dados iniciais:", error)
-      showNotification("Erro ao sincronizar dados com o servidor.", "error")
+      
+      if (error?.statusCode === 401 || error?.status === 401) {
+        setApiError("Sua sessão expirou por inatividade. É necessário autenticar-se novamente.")
+      } else {
+        setApiError("Não foi possível sincronizar suas informações com o servidor.")
+        showNotification("Erro ao sincronizar dados com o servidor.", "error")
+      }
     } finally {
       setLoading(false)
     }
@@ -371,11 +380,44 @@ export default function SellerDashboard() {
     }
   }
 
+  // SUBSTITUA O BLOCO DE LOADING ANTERIOR POR ESTE:
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-2">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-muted-foreground text-sm">Carregando seus dados...</p>
+      </div>
+    )
+  }
+
+  if (apiError) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="bg-card border border-destructive/20 rounded-2xl p-6 max-w-md w-full shadow-sm text-center space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+            <AlertTriangle className="h-6 w-6" /> 
+          </div>
+          <div className="space-y-1">
+            <h2 className="font-semibold text-foreground">Acesso Expirado</h2>
+            <p className="text-sm text-muted-foreground">{apiError}</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <button 
+              type="button"
+              className="w-full h-10 px-4 inline-flex items-center justify-center rounded-xl border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium transition-colors"
+              onClick={() => window.location.reload()}
+            >
+              Tentar novamente
+            </button>
+            <button 
+              type="button"
+              className="w-full h-10 px-4 inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium transition-colors"
+              onClick={() => router.push('/login')}
+            >
+              Ir para o Login
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
